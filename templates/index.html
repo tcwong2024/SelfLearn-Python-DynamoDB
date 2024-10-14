@@ -1,14 +1,103 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>My Web App</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management</title>
 </head>
 <body>
-    <h1>Data from API</h1>
-    <ul>
-        {% for item in data %}
-            <li>{{ item }}</li>
-        {% endfor %}
-    </ul>
+    <h1>User Management</h1>
+    
+    <h2>Create New User</h2>
+    <form id="create-user-form">
+        <input type="text" id="user-id" placeholder="User ID" required>
+        <input type="text" id="user-name" placeholder="Name" required>
+        <input type="number" id="user-age" placeholder="Age" required>
+        <input type="text" id="user-city" placeholder="City" required>
+        <button type="submit">Create</button>
+    </form>
+
+    <h2>Update User</h2>
+    <form id="update-user-form">
+        <input type="text" id="edit-user-id" placeholder="User ID" required>
+        <input type="text" id="edit-user-name" placeholder="Name" required>
+        <input type="number" id="edit-user-age" placeholder="Age" required>
+        <input type="text" id="edit-user-city" placeholder="City" required>
+        <button type="submit">Update</button>
+    </form>
+
+    <h2>Delete User</h2>
+    <form id="delete-user-form">
+        <input type="text" id="delete-user-id" placeholder="User ID" required>
+        <button type="submit">Delete</button>
+    </form>
+
+    <h2>User List</h2>
+    <ul id="user-list"></ul>
+
+    <script>
+        // Create User
+        document.getElementById('create-user-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('user-id').value;
+            const name = document.getElementById('user-name').value;
+            const age = document.getElementById('user-age').value;
+            const city = document.getElementById('user-city').value;
+
+            const response = await fetch('http://127.0.0.1:5001/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ Id: id, Name: name, Age: age, City: city })
+            });
+            const data = await response.json();
+            alert(data.message || 'Error occurred');
+            loadUsers();
+        });
+
+        // Update User
+        document.getElementById('update-user-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-user-id').value;
+            const name = document.getElementById('edit-user-name').value;
+            const age = document.getElementById('edit-user-age').value;
+            const city = document.getElementById('edit-user-city').value;
+
+            const response = await fetch(`http://127.0.0.1:5001/users/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ Name: name, Age: age, City: city })
+            });
+            const data = await response.json();
+            alert(data.message || 'Error occurred');
+            loadUsers();
+        });
+
+        // Delete User
+        document.getElementById('delete-user-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('delete-user-id').value;
+
+            const response = await fetch(`http://127.0.0.1:5001/users/${id}`, { method: 'DELETE' });
+            const data = await response.json();
+            alert(data.message || 'Error occurred');
+            loadUsers();
+        });
+
+        // Load User List
+        async function loadUsers() {
+            const response = await fetch('http://127.0.0.1:5001/users');
+            const users = await response.json();
+            const userList = document.getElementById('user-list');
+            userList.innerHTML = '';
+            users.forEach(user => {
+                const li = document.createElement('li');
+                li.textContent = `ID: ${user.Id}, Name: ${user.Name}, Age: ${user.Age}, City: ${user.City}`;
+                userList.appendChild(li);
+            });
+        }
+
+        // Load users on page load
+        loadUsers();
+    </script>
 </body>
 </html>
