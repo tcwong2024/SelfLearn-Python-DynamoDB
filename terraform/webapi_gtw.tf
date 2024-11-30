@@ -1,5 +1,5 @@
 # # ----------------------------------------------------------------------------------------------------
-# # Rest API
+# # Rest API Gateway - usieng GET, POST, PUT, DELETE 
 # # ----------------------------------------------------------------------------------------------------
 
 # Define the API Gateway REST API with regional endpoint type
@@ -12,7 +12,7 @@ resource "aws_api_gateway_rest_api" "jokes_api" {
 }
 
 # # ----------------------------------------------------------------------------------------------------
-# # Resource
+# # Define Resources
 # # ----------------------------------------------------------------------------------------------------
 
 # Create the resource for 'jokes' path
@@ -47,7 +47,7 @@ output "api_gateway_execution_arn" {
 }
 
 # # ----------------------------------------------------------------------------------------------------
-# # Methods request - /jokes
+# # Define Methods - /jokes
 # # ----------------------------------------------------------------------------------------------------
 
 # Define the GET method
@@ -75,7 +75,7 @@ resource "aws_api_gateway_method" "options_cors" {
 }
 
 # # ----------------------------------------------------------------------------------------------------
-# # Sub Methods request - /jokes/{Id}
+# # Define Methods - /jokes/{Id}
 # # ----------------------------------------------------------------------------------------------------
 
 # Define a PUT method for /jokes/{id}
@@ -107,78 +107,7 @@ resource "aws_api_gateway_method" "options_joke_by_id" {
 }
 
 # # ----------------------------------------------------------------------------------------------------
-# # Integration request - \jokes
-# # ----------------------------------------------------------------------------------------------------
-
-# Integrate GET method with Lambda
-resource "aws_api_gateway_integration" "get_jokes_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.jokes_api.id
-  resource_id             = aws_api_gateway_resource.jokes_resource.id
-  http_method             = aws_api_gateway_method.get_jokes.http_method
-  integration_http_method = "POST"
-  type                    = "AWS"
-  uri                     = aws_lambda_function.jokes_lambda.invoke_arn
-  # type                    = "AWS_PROXY"
-}
-
-# Integrate POST method with Lambda
-resource "aws_api_gateway_integration" "post_jokes_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.jokes_api.id
-  resource_id             = aws_api_gateway_resource.jokes_resource.id
-  http_method             = aws_api_gateway_method.post_jokes.http_method
-  integration_http_method = "POST"
-  type                    = "AWS"
-  uri                     = aws_lambda_function.jokes_lambda.invoke_arn
-}
-
-# Integrate OPTIONS method with Lambda
-resource "aws_api_gateway_integration" "options_cors_integration" {
-  rest_api_id = aws_api_gateway_rest_api.jokes_api.id
-  resource_id = aws_api_gateway_resource.jokes_resource.id
-  http_method = aws_api_gateway_method.options_cors.http_method
-  type        = "MOCK"
-
-  request_templates = {
-    "application/json" = "{\"statusCode\": 200}"
-  }
-}
-
-# # ----------------------------------------------------------------------------------------------------
-# # Integration request - \jokes\{Id}
-# # ----------------------------------------------------------------------------------------------------
-
-resource "aws_api_gateway_integration" "put_joke_by_id_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.jokes_api.id
-  resource_id             = aws_api_gateway_resource.jokes_id_resource.id
-  http_method             = aws_api_gateway_method.put_joke_by_id.http_method
-  integration_http_method = "PUT"
-  type                    = "AWS"
-  uri                     = aws_lambda_function.jokes_lambda.invoke_arn
-}
-
-resource "aws_api_gateway_integration" "delete_joke_by_id_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.jokes_api.id
-  resource_id             = aws_api_gateway_resource.jokes_id_resource.id
-  http_method             = aws_api_gateway_method.delete_joke_by_id.http_method
-  integration_http_method = "DELETE"
-  type                    = "AWS"
-  uri                     = aws_lambda_function.jokes_lambda.invoke_arn
-}
-
-resource "aws_api_gateway_integration" "options_joke_by_id_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.jokes_api.id
-  resource_id             = aws_api_gateway_resource.jokes_id_resource.id
-  http_method             = aws_api_gateway_method.options_joke_by_id.http_method
-  integration_http_method = "OPTIONS"
-  type                    = "MOCK"
-
-  request_templates = {
-    "application/json" = "{\"statusCode\": 200}"
-  }
-}
-
-# # ----------------------------------------------------------------------------------------------------
-# # Methods response
+# # Add Methods response - /jokes
 # # ----------------------------------------------------------------------------------------------------
 
 resource "aws_api_gateway_method_response" "get_method_response_200" {
@@ -227,7 +156,7 @@ resource "aws_api_gateway_method_response" "option_cors_method_response_200" {
 }
 
 # # ----------------------------------------------------------------------------------------------------
-# # Methods response - \jokes\{Id}
+# # Add Methods response - \jokes\{Id}
 # # ----------------------------------------------------------------------------------------------------
 
 resource "aws_api_gateway_method_response" "put_joke_by_id_response" {
@@ -278,12 +207,85 @@ resource "aws_api_gateway_method_response" "options_joke_by_id_response" {
 }
 
 # # ----------------------------------------------------------------------------------------------------
-# # Integration response - \jokes
+# # Setup up Integration - \jokes
+# # ----------------------------------------------------------------------------------------------------
+
+# Integrate GET method with Lambda
+resource "aws_api_gateway_integration" "get_jokes_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.jokes_api.id
+  resource_id             = aws_api_gateway_resource.jokes_resource.id
+  http_method             = aws_api_gateway_method.get_jokes.http_method
+  integration_http_method = "POST"
+  type                    = "AWS"
+  uri                     = aws_lambda_function.jokes_lambda.invoke_arn
+
+}
+
+# Integrate POST method with Lambda
+resource "aws_api_gateway_integration" "post_jokes_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.jokes_api.id
+  resource_id             = aws_api_gateway_resource.jokes_resource.id
+  http_method             = aws_api_gateway_method.post_jokes.http_method
+  integration_http_method = "POST"
+  type                    = "AWS"
+  uri                     = aws_lambda_function.jokes_lambda.invoke_arn
+}
+
+# Integrate OPTIONS method with Lambda
+resource "aws_api_gateway_integration" "options_cors_integration" {
+  rest_api_id = aws_api_gateway_rest_api.jokes_api.id
+  resource_id = aws_api_gateway_resource.jokes_resource.id
+  http_method = aws_api_gateway_method.options_cors.http_method
+  type        = "MOCK"
+
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
+
+# # ----------------------------------------------------------------------------------------------------
+# # Setup up Integration - \jokes\{Id}
+# # ----------------------------------------------------------------------------------------------------
+
+resource "aws_api_gateway_integration" "put_joke_by_id_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.jokes_api.id
+  resource_id             = aws_api_gateway_resource.jokes_id_resource.id
+  http_method             = aws_api_gateway_method.put_joke_by_id.http_method
+  integration_http_method = "POST"
+  type                    = "AWS"
+  uri                     = aws_lambda_function.jokes_lambda.invoke_arn
+}
+
+resource "aws_api_gateway_integration" "delete_joke_by_id_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.jokes_api.id
+  resource_id             = aws_api_gateway_resource.jokes_id_resource.id
+  http_method             = aws_api_gateway_method.delete_joke_by_id.http_method
+  integration_http_method = "POST"
+  type                    = "AWS"
+  uri                     = aws_lambda_function.jokes_lambda.invoke_arn
+}
+
+resource "aws_api_gateway_integration" "options_joke_by_id_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.jokes_api.id
+  resource_id             = aws_api_gateway_resource.jokes_id_resource.id
+  http_method             = aws_api_gateway_method.options_joke_by_id.http_method
+  integration_http_method = "OPTIONS"
+  type                    = "MOCK"
+
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
+
+# # ----------------------------------------------------------------------------------------------------
+# # Define Integration responses - \jokes
 # # ----------------------------------------------------------------------------------------------------
 
 resource "aws_api_gateway_integration_response" "get_jokes_integration_response" {
 
-  depends_on = [aws_api_gateway_integration.get_jokes_integration]
+  depends_on = [
+    aws_api_gateway_method_response.get_method_response_200
+  ]
 
   rest_api_id = aws_api_gateway_rest_api.jokes_api.id
   resource_id = aws_api_gateway_resource.jokes_resource.id
@@ -298,8 +300,10 @@ resource "aws_api_gateway_integration_response" "get_jokes_integration_response"
 }
 
 resource "aws_api_gateway_integration_response" "post_jokes_integration_response" {
-  depends_on  = [aws_api_gateway_integration.post_jokes_integration]
-  
+  depends_on = [
+    aws_api_gateway_method_response.post_method_response_200
+  ]
+
   rest_api_id = aws_api_gateway_rest_api.jokes_api.id
   resource_id = aws_api_gateway_resource.jokes_resource.id
   http_method = aws_api_gateway_method.post_jokes.http_method
@@ -313,7 +317,9 @@ resource "aws_api_gateway_integration_response" "post_jokes_integration_response
 }
 
 resource "aws_api_gateway_integration_response" "option_cors_integration_response" {
-  depends_on = [aws_api_gateway_integration.options_cors_integration]
+  depends_on = [
+    aws_api_gateway_method_response.option_cors_method_response_200
+  ]
 
   rest_api_id = aws_api_gateway_rest_api.jokes_api.id
   resource_id = aws_api_gateway_resource.jokes_resource.id
@@ -321,24 +327,33 @@ resource "aws_api_gateway_integration_response" "option_cors_integration_respons
   status_code = "200"
 
   response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin" = "'*'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
     "method.response.header.Access-Control-Allow-Methods" = "'GET, OPTIONS, POST'"
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
   }
 }
 
 # # ----------------------------------------------------------------------------------------------------
-# # Integration response - \jokes\{Id}
+# # Define Integration responses - \jokes\{Id}
 # # ----------------------------------------------------------------------------------------------------
 
 resource "aws_api_gateway_integration_response" "put_joke_by_id_integration_response" {
+
+  depends_on = [
+    aws_api_gateway_method_response.put_joke_by_id_response
+  ]
+
   rest_api_id = aws_api_gateway_rest_api.jokes_api.id
   resource_id = aws_api_gateway_resource.jokes_id_resource.id
   http_method = aws_api_gateway_method.put_joke_by_id.http_method
   status_code = "200"
 
+  # response_templates = {
+  #   "application/json" = ""
+  # }
+
   response_templates = {
-    "application/json" = ""
+    "application/json" = "$input.json('$.body')" # Map the 'body' field from the backend response.
   }
 
   response_parameters = {
@@ -347,6 +362,11 @@ resource "aws_api_gateway_integration_response" "put_joke_by_id_integration_resp
 }
 
 resource "aws_api_gateway_integration_response" "delete_joke_by_id_integration_response" {
+
+  depends_on = [
+    aws_api_gateway_method_response.delete_joke_by_id_response
+  ]
+
   rest_api_id = aws_api_gateway_rest_api.jokes_api.id
   resource_id = aws_api_gateway_resource.jokes_id_resource.id
   http_method = aws_api_gateway_method.delete_joke_by_id.http_method
@@ -360,7 +380,9 @@ resource "aws_api_gateway_integration_response" "delete_joke_by_id_integration_r
 }
 
 resource "aws_api_gateway_integration_response" "options_joke_by_id_integration_response" {
-  depends_on = [aws_api_gateway_integration.options_joke_by_id_integration]
+  depends_on = [
+    aws_api_gateway_method_response.options_joke_by_id_response
+  ]
 
   rest_api_id = aws_api_gateway_rest_api.jokes_api.id
   resource_id = aws_api_gateway_resource.jokes_id_resource.id
@@ -379,24 +401,38 @@ resource "aws_api_gateway_integration_response" "options_joke_by_id_integration_
 }
 
 # # ----------------------------------------------------------------------------------------------------
-# # Deployment API
+# # Deployment the API
 # # ----------------------------------------------------------------------------------------------------
 
 # Deployment for the API Gateway
 resource "aws_api_gateway_deployment" "jokes_deployment" {
   depends_on = [
+    aws_api_gateway_resource.jokes_resource,
+    aws_api_gateway_resource.jokes_id_resource,
+    aws_api_gateway_method.get_jokes,
+    aws_api_gateway_method.post_jokes,
+    aws_api_gateway_method.options_cors,
+    aws_api_gateway_method.put_joke_by_id,
+    aws_api_gateway_method.delete_joke_by_id,
+    aws_api_gateway_method.options_joke_by_id,
+    aws_api_gateway_method_response.get_method_response_200,
+    aws_api_gateway_method_response.post_method_response_200,
+    aws_api_gateway_method_response.option_cors_method_response_200,
+    aws_api_gateway_method_response.put_joke_by_id_response,
+    aws_api_gateway_method_response.delete_joke_by_id_response,
+    aws_api_gateway_method_response.options_joke_by_id_response,
     aws_api_gateway_integration.get_jokes_integration,
     aws_api_gateway_integration.post_jokes_integration,
     aws_api_gateway_integration.options_cors_integration,
     aws_api_gateway_integration.put_joke_by_id_integration,
     aws_api_gateway_integration.delete_joke_by_id_integration,
     aws_api_gateway_integration.options_joke_by_id_integration,
-    aws_api_gateway_method.get_jokes,
-    aws_api_gateway_method.post_jokes,
-    aws_api_gateway_method.options_cors,
-    aws_api_gateway_method.put_joke_by_id,
-    aws_api_gateway_method.delete_joke_by_id,
-    aws_api_gateway_method.options_joke_by_id
+    aws_api_gateway_integration_response.get_jokes_integration_response,
+    aws_api_gateway_integration_response.post_jokes_integration_response,
+    aws_api_gateway_integration_response.option_cors_integration_response,
+    aws_api_gateway_integration_response.put_joke_by_id_integration_response,
+    aws_api_gateway_integration_response.delete_joke_by_id_integration_response,
+    aws_api_gateway_integration_response.options_joke_by_id_integration_response
   ]
 
   rest_api_id = aws_api_gateway_rest_api.jokes_api.id
