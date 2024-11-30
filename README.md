@@ -99,3 +99,11 @@
    ```
       http://localhost:5000/
    ```
+
+### Terraform
+   ```
+      terraform init
+      terraform plan
+      terraform apply -auto-approve
+      terraform destroy
+   ```

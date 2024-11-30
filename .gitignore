@@ -1,5 +1,11 @@
+# Local .terraform directories
+**/.terraform/*
+
 # Dynamodb
 /db/
+/exportdata/
+/files/
+/Misc/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
