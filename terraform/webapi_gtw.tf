@@ -4,8 +4,9 @@
 
 # Define the API Gateway REST API with regional endpoint type
 resource "aws_api_gateway_rest_api" "jokes_api" {
-  name        = "ce7-grp-2-jokes-restapi"
-  description = "API for managing jokes in DynamoDB"
+  name        = var.rest_api_name
+  description = var.rest_api_description
+
   endpoint_configuration {
     types = ["REGIONAL"]
   }
@@ -40,10 +41,6 @@ resource "aws_lambda_permission" "api_gateway_permission" {
   function_name = aws_lambda_function.jokes_lambda.function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_api_gateway_rest_api.jokes_api.execution_arn}/*/*"
-}
-
-output "api_gateway_execution_arn" {
-  value = aws_api_gateway_rest_api.jokes_api.execution_arn
 }
 
 # # ----------------------------------------------------------------------------------------------------
@@ -115,6 +112,7 @@ resource "aws_api_gateway_method_response" "get_method_response_200" {
   resource_id = aws_api_gateway_resource.jokes_resource.id
   http_method = aws_api_gateway_method.get_jokes.http_method
   status_code = "200"
+
   response_models = {
     "application/json" = "Empty"
   }
@@ -129,6 +127,7 @@ resource "aws_api_gateway_method_response" "post_method_response_200" {
   resource_id = aws_api_gateway_resource.jokes_resource.id
   http_method = aws_api_gateway_method.post_jokes.http_method
   status_code = "200"
+
   response_models = {
     "application/json" = "Empty"
   }
@@ -284,6 +283,7 @@ resource "aws_api_gateway_integration" "options_joke_by_id_integration" {
 resource "aws_api_gateway_integration_response" "get_jokes_integration_response" {
 
   depends_on = [
+    aws_api_gateway_integration.get_jokes_integration, # update 20241202
     aws_api_gateway_method_response.get_method_response_200
   ]
 
@@ -291,9 +291,11 @@ resource "aws_api_gateway_integration_response" "get_jokes_integration_response"
   resource_id = aws_api_gateway_resource.jokes_resource.id
   http_method = aws_api_gateway_method.get_jokes.http_method
   status_code = "200"
+
   response_templates = {
     "application/json" = ""
   }
+
   response_parameters = {
     "method.response.header.Access-Control-Allow-Origin" = "'*'"
   }
@@ -301,6 +303,7 @@ resource "aws_api_gateway_integration_response" "get_jokes_integration_response"
 
 resource "aws_api_gateway_integration_response" "post_jokes_integration_response" {
   depends_on = [
+    aws_api_gateway_integration.post_jokes_integration, # update 20241202
     aws_api_gateway_method_response.post_method_response_200
   ]
 
@@ -308,9 +311,11 @@ resource "aws_api_gateway_integration_response" "post_jokes_integration_response
   resource_id = aws_api_gateway_resource.jokes_resource.id
   http_method = aws_api_gateway_method.post_jokes.http_method
   status_code = "200"
+
   response_templates = {
     "application/json" = ""
   }
+
   response_parameters = {
     "method.response.header.Access-Control-Allow-Origin" = "'*'"
   }
@@ -318,6 +323,7 @@ resource "aws_api_gateway_integration_response" "post_jokes_integration_response
 
 resource "aws_api_gateway_integration_response" "option_cors_integration_response" {
   depends_on = [
+    aws_api_gateway_integration.options_cors_integration,
     aws_api_gateway_method_response.option_cors_method_response_200
   ]
 
@@ -340,6 +346,7 @@ resource "aws_api_gateway_integration_response" "option_cors_integration_respons
 resource "aws_api_gateway_integration_response" "put_joke_by_id_integration_response" {
 
   depends_on = [
+    aws_api_gateway_integration.put_joke_by_id_integration, # update 20241202
     aws_api_gateway_method_response.put_joke_by_id_response
   ]
 
@@ -347,10 +354,6 @@ resource "aws_api_gateway_integration_response" "put_joke_by_id_integration_resp
   resource_id = aws_api_gateway_resource.jokes_id_resource.id
   http_method = aws_api_gateway_method.put_joke_by_id.http_method
   status_code = "200"
-
-  # response_templates = {
-  #   "application/json" = ""
-  # }
 
   response_templates = {
     "application/json" = "$input.json('$.body')" # Map the 'body' field from the backend response.
@@ -364,6 +367,7 @@ resource "aws_api_gateway_integration_response" "put_joke_by_id_integration_resp
 resource "aws_api_gateway_integration_response" "delete_joke_by_id_integration_response" {
 
   depends_on = [
+    aws_api_gateway_integration.delete_joke_by_id_integration, # update 20241202
     aws_api_gateway_method_response.delete_joke_by_id_response
   ]
 
@@ -371,9 +375,11 @@ resource "aws_api_gateway_integration_response" "delete_joke_by_id_integration_r
   resource_id = aws_api_gateway_resource.jokes_id_resource.id
   http_method = aws_api_gateway_method.delete_joke_by_id.http_method
   status_code = "200"
+
   response_templates = {
     "application/json" = ""
   }
+
   response_parameters = {
     "method.response.header.Access-Control-Allow-Origin" = "'*'"
   }
@@ -381,6 +387,7 @@ resource "aws_api_gateway_integration_response" "delete_joke_by_id_integration_r
 
 resource "aws_api_gateway_integration_response" "options_joke_by_id_integration_response" {
   depends_on = [
+    aws_api_gateway_integration.options_joke_by_id_integration, # update 20241202
     aws_api_gateway_method_response.options_joke_by_id_response
   ]
 
@@ -436,7 +443,17 @@ resource "aws_api_gateway_deployment" "jokes_deployment" {
   ]
 
   rest_api_id = aws_api_gateway_rest_api.jokes_api.id
-  stage_name  = "dev"
+}
+
+# # ----------------------------------------------------------------------------------------------------
+# # Stage Resource # added at 20241202
+# # ----------------------------------------------------------------------------------------------------
+
+resource "aws_api_gateway_stage" "api_stage" {
+  rest_api_id   = aws_api_gateway_rest_api.jokes_api.id
+  deployment_id = aws_api_gateway_deployment.jokes_deployment.id
+  stage_name    = var.stage_name
+  description   = var.stage_name_desc
 }
 
 # # ----------------------------------------------------------------------------------------------------
